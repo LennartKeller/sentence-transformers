@@ -29,7 +29,7 @@ class Transformer(nn.Module):
         config = AutoConfig.from_pretrained(model_name_or_path, **model_args, use_auth_token=use_auth_token, cache_dir=cache_dir)
         self._load_model(model_name_or_path, config, cache_dir, use_auth_token)
 
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path if tokenizer_name_or_path is not None else model_name_or_path, cache_dir=cache_dir, **tokenizer_args)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path if tokenizer_name_or_path is not None else model_name_or_path, use_auth_token=use_auth_token, cache_dir=cache_dir, **tokenizer_args)
 
         #No max_seq_length set. Try to infer from model
         if max_seq_length is None:
