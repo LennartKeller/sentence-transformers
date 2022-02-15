@@ -19,6 +19,7 @@ class Transformer(nn.Module):
     """
     def __init__(self, model_name_or_path: str, max_seq_length: Optional[int] = None,
                  model_args: Dict = {}, cache_dir: Optional[str] = None,
+                 use_auth_token: bool = False,
                  tokenizer_args: Dict = {}, do_lower_case: bool = False,
                  tokenizer_name_or_path : str = None):
         super(Transformer, self).__init__()
@@ -41,18 +42,18 @@ class Transformer(nn.Module):
             self.auto_model.config.tokenizer_class = self.tokenizer.__class__.__name__
 
 
-    def _load_model(self, model_name_or_path, config, cache_dir):
+    def _load_model(self, model_name_or_path, config, cache_dir, use_auth_token):
         """Loads the transformer model"""
         if isinstance(config, T5Config):
-            self._load_t5_model(model_name_or_path, config, cache_dir)
+            self._load_t5_model(model_name_or_path, config, cache_dir, use_auth_token)
         else:
-            self.auto_model = AutoModel.from_pretrained(model_name_or_path, config=config, cache_dir=cache_dir)
+            self.auto_model = AutoModel.from_pretrained(model_name_or_path, config=config, use_auth_token=use_auth_token, cache_dir=cache_dir)
 
-    def _load_t5_model(self, model_name_or_path, config, cache_dir):
+    def _load_t5_model(self, model_name_or_path, config, cache_dir, use_auth_token):
         """Loads the encoder model from T5"""
         from transformers import T5EncoderModel
         T5EncoderModel._keys_to_ignore_on_load_unexpected = ["decoder.*"]
-        self.auto_model = T5EncoderModel.from_pretrained(model_name_or_path, config=config, cache_dir=cache_dir)
+        self.auto_model = T5EncoderModel.from_pretrained(model_name_or_path, config=config, use_auth_token=use_auth_token, cache_dir=cache_dir)
 
     def __repr__(self):
         return "Transformer({}) with Transformer model: {} ".format(self.get_config_dict(), self.auto_model.__class__.__name__)
