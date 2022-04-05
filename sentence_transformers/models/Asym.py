@@ -61,7 +61,7 @@ class Asym(nn.Sequential):
         Hack to prevent checkpointing while training from failing.
         We use the sentence_embedding_dimension from the second encoder as value.
         """
-        raise next(reversed(self._modules.values())).get_sentence_embedding_dimension()
+        return next(reversed(self._modules.values())).get_sentence_embedding_dimension()
 
     def save(self, output_path):
         model_lookup = {}
