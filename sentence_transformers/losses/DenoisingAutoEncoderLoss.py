@@ -25,7 +25,7 @@ class DenoisingAutoEncoderLoss(nn.Module):
             model: SentenceTransformer,
             decoder_name_or_path: str = None,
             tie_encoder_decoder: bool = True,
-            kwargs_decoder: Dict[Any, Any] = None
+            use_auth_token: bool = False
     ):
         """
         :param model: SentenceTransformer model
@@ -36,9 +36,6 @@ class DenoisingAutoEncoderLoss(nn.Module):
         self.encoder = model  # This will be the final model used during the inference time.
         self.tokenizer_encoder = model.tokenizer
 
-        if kwargs_decoder is None:
-            kwargs_decoder = {}
-
         encoder_name_or_path = model[0].auto_model.config._name_or_path
         if decoder_name_or_path is None:
             assert tie_encoder_decoder, "Must indicate the decoder_name_or_path argument when tie_encoder_decoder=False!"
@@ -47,14 +44,17 @@ class DenoisingAutoEncoderLoss(nn.Module):
                 logger.warning('When tie_encoder_decoder=True, the decoder_name_or_path will be invalid.')
             decoder_name_or_path = encoder_name_or_path
 
-        self.tokenizer_decoder = AutoTokenizer.from_pretrained(decoder_name_or_path, **kwargs_decoder)
+        self.tokenizer_decoder = AutoTokenizer.from_pretrained(decoder_name_or_path, use_auth_token=use_auth_token)
         self.need_retokenization = not (type(self.tokenizer_encoder) == type(self.tokenizer_decoder))
 
-        decoder_config = AutoConfig.from_pretrained(decoder_name_or_path,  **kwargs_decoder)
+        decoder_config = AutoConfig.from_pretrained(decoder_name_or_path,  use_auth_token=use_auth_token)
         decoder_config.is_decoder = True
         decoder_config.add_cross_attention = True
         
-        kwargs_decoder['config'] = decoder_config
+        kwargs_decoder = {
+            'config': decoder_config,
+            'use_auth_token': use_auth_token
+        }
 
         try:
             self.decoder = AutoModelForCausalLM.from_pretrained(decoder_name_or_path, **kwargs_decoder)
