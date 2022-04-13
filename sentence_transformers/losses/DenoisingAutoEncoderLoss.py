@@ -1,6 +1,6 @@
 import torch
 from torch import nn, Tensor
-from typing import Iterable, Dict
+from typing import Any, Iterable, Dict
 from sentence_transformers import SentenceTransformer
 from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, PreTrainedModel
 import logging
@@ -24,7 +24,8 @@ class DenoisingAutoEncoderLoss(nn.Module):
             self,
             model: SentenceTransformer,
             decoder_name_or_path: str = None,
-            tie_encoder_decoder: bool = True
+            tie_encoder_decoder: bool = True,
+            kwargs_decoder: Dict[Any, Any] = None
     ):
         """
         :param model: SentenceTransformer model
@@ -49,7 +50,10 @@ class DenoisingAutoEncoderLoss(nn.Module):
         decoder_config = AutoConfig.from_pretrained(decoder_name_or_path)
         decoder_config.is_decoder = True
         decoder_config.add_cross_attention = True
-        kwargs_decoder = {'config': decoder_config}
+        if kwargs_decoder is None:
+            kwargs_decoder = {'config': decoder_config}
+        else:
+            kwargs_decoder['config'] = decoder_config
         try:
             self.decoder = AutoModelForCausalLM.from_pretrained(decoder_name_or_path, **kwargs_decoder)
         except ValueError as e:
